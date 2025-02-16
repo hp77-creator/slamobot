@@ -24,7 +24,7 @@ slamobot/
 └── .env              # Environment variables
 ```
 
-## Setup
+## Local Setup
 
 1. Create a Slack App:
    - Go to [api.slack.com/apps](https://api.slack.com/apps)
@@ -64,7 +64,7 @@ slamobot/
 
 ## Usage
 
-1. Start the bot:
+1. Start the bot locally:
    ```bash
    # Run without verbose logging
    python main.py
@@ -73,7 +73,32 @@ slamobot/
    python main.py --verbose
    ```
 
-2. Invite the bot to a channel:
+2. Deploy to Railway (Recommended for production):
+   ```bash
+   # Install Railway CLI
+   npm i -g @railway/cli
+
+   # Login to Railway
+   railway login
+
+   # Create a new project
+   railway init
+
+   # Deploy the project
+   railway up
+   ```
+
+   Or deploy using GitHub:
+   1. Fork this repository
+   2. Create a new project in Railway
+   3. Connect your GitHub repository
+   4. Add environment variables in Railway dashboard:
+      - SLACK_BOT_TOKEN
+      - SLACK_APP_TOKEN
+      - GOOGLE_API_KEY
+   5. Railway will automatically deploy on push
+
+3. Invite the bot to a channel:
    ```
    /invite @YourBotName
    ```
@@ -85,7 +110,7 @@ slamobot/
 
 ## Development
 
-- The bot uses SQLite for storing message history
+- The bot uses SQLite for storing message history (persistent in Railway deployment)
 - Messages are stored with thread context
 - Last 5 messages (including bot responses) are included in LLM context
 
