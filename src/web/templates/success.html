@@ -52,6 +52,28 @@
         .next-steps li {
             margin: 10px 0;
         }
+        .next-steps ul {
+            list-style-type: none;
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        .next-steps ul li {
+            margin: 8px 0;
+            position: relative;
+            padding-left: 20px;
+        }
+        .next-steps ul li:before {
+            content: "•";
+            color: #36C5F0;
+            position: absolute;
+            left: 0;
+        }
+        .next-steps code {
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -63,9 +85,16 @@
         <div class="next-steps">
             <h2>Next Steps:</h2>
             <ol>
-                <li>Invite @Slamobot to any channel using <code>/invite @Slamobot</code></li>
-                <li>Mention @Slamobot in the channel to start interacting</li>
-                <li>The bot will respond to your messages and maintain conversation context</li>
+                <li>Use the bot in different contexts:
+                    <ul>
+                        <li>Public channels: Use <code>/invite @Slamobot</code> first</li>
+                        <li>Private channels: Add the bot to the channel</li>
+                        <li>Direct messages: Start a DM with @Slamobot</li>
+                        <li>Group messages: Add the bot to the conversation</li>
+                    </ul>
+                </li>
+                <li>Mention @Slamobot to start interacting</li>
+                <li>The bot will maintain conversation context in all chats</li>
             </ol>
         </div>
         

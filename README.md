@@ -4,7 +4,7 @@ A Slack bot that uses Google's Gemini API to provide intelligent responses while
 
 ## Features
 
-- Responds to mentions in Slack channels
+- Responds to mentions in all contexts (channels, private channels, DMs, group messages)
 - Maintains conversation history (last 5 messages)
 - Includes both user messages and bot responses in context
 - Uses Google's Gemini API for intelligent responses
@@ -37,7 +37,7 @@ slamobot/
 1. Visit our installation page: `https://your-bot-domain.up.railway.app`
 2. Click "Add to Slack" button
 3. Authorize the app for your workspace
-4. Start using the bot in your channels!
+4. Start using the bot in any channel or DM!
 
 ### Option 2: Local Development Setup
 
@@ -45,9 +45,12 @@ slamobot/
    - Go to [api.slack.com/apps](https://api.slack.com/apps)
    - Create New App > From scratch
    - Add necessary permissions:
-     * app_mentions:read
-     * chat:write
-     * channels:history
+     * app_mentions:read (respond to mentions)
+     * chat:write (send messages)
+     * channels:history (read public channels)
+     * groups:history (read private channels)
+     * im:history (read direct messages)
+     * mpim:history (read group messages)
    - Enable Socket Mode
    - Install to workspace
    - Copy Bot User OAuth Token and App-Level Token
@@ -116,14 +119,18 @@ slamobot/
       - GOOGLE_API_KEY
    5. Railway will automatically deploy on push
 
-3. Invite the bot to a channel:
+3. Interact with the bot:
    ```
+   # In public channels
    /invite @YourBotName
-   ```
-
-4. Mention the bot to get a response:
-   ```
    @YourBotName What's the weather like?
+
+   # In private channels
+   Add the bot to the channel first
+   @YourBotName Hello!
+
+   # In direct messages
+   Just send a message to @YourBotName
    ```
 
 ## Development
@@ -134,6 +141,11 @@ slamobot/
 - Last 5 messages (including bot responses) are included in LLM context
 - Supports multiple workspaces through OAuth installation
 - Web server handles OAuth flow and provides installation page
+- Works in all conversation contexts:
+  * Public channels
+  * Private channels
+  * Direct messages
+  * Group messages
 
 ## Production Deployment
 
@@ -141,6 +153,7 @@ slamobot/
    - Add OAuth Redirect URL: `https://your-domain.up.railway.app/slack/oauth_redirect`
    - Set App Home URL: `https://your-domain.up.railway.app`
    - Enable public distribution if desired
+   - Verify all scopes are properly configured
 
 2. Set up Railway:
    - Configure environment variables
