@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Error</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+        h1 {
+            color: #E01E5A;
+            margin-bottom: 20px;
+        }
+        .error-icon {
+            color: #E01E5A;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .error-details {
+            background: #fff5f6;
+            border: 1px solid #E01E5A;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .error-message {
+            font-family: monospace;
+            color: #E01E5A;
+        }
+        .retry-btn {
+            display: inline-block;
+            background: #E01E5A;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        .retry-btn:hover {
+            background: #bc1649;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon">✕</div>
+        <h1>Installation Failed</h1>
+        <p>Sorry, we encountered an error while installing Slamobot.</p>
+        
+        <div class="error-details">
+            <strong>Error Details:</strong>
+            <p class="error-message">{{ error }}</p>
+        </div>
+        
+        <a href="/" class="retry-btn">Try Again</a>
+        
+        <p style="margin-top: 30px;">
+            Need help? Check out our <a href="https://github.com/yourusername/slamobot" target="_blank">documentation</a>
+            or <a href="https://github.com/yourusername/slamobot/issues" target="_blank">report an issue</a>.
+        </p>
+    </div>
+</body>
+</html>

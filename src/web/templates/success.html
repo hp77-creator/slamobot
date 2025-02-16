@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Successful</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+        h1 {
+            color: #1d1c1d;
+            margin-bottom: 20px;
+        }
+        .success-icon {
+            color: #2EB67D;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .next-steps {
+            text-align: left;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .next-steps h2 {
+            color: #1d1c1d;
+            margin-top: 0;
+        }
+        .next-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>Successfully Installed!</h1>
+        <p>Slamobot has been added to your workspace: <strong>{{ team_name }}</strong></p>
+        
+        <div class="next-steps">
+            <h2>Next Steps:</h2>
+            <ol>
+                <li>Invite @Slamobot to any channel using <code>/invite @Slamobot</code></li>
+                <li>Mention @Slamobot in the channel to start interacting</li>
+                <li>The bot will respond to your messages and maintain conversation context</li>
+            </ol>
+        </div>
+        
+        <p>Need help? Check out our <a href="https://github.com/yourusername/slamobot" target="_blank">documentation</a>.</p>
+    </div>
+</body>
+</html>

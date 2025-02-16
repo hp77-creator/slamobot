@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install Slamobot</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+        h1 {
+            color: #1d1c1d;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #454245;
+            margin-bottom: 30px;
+        }
+        .features {
+            text-align: left;
+            margin: 30px 0;
+        }
+        .features ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .features li {
+            margin: 10px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #36C5F0;
+        }
+        .slack-btn {
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .slack-btn img {
+            height: 40px;
+            transition: transform 0.2s;
+        }
+        .slack-btn:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Slamobot to Slack</h1>
+        <p>Enhance your Slack workspace with intelligent AI-powered responses</p>
+        
+        <div class="features">
+            <ul>
+                <li>Responds intelligently to mentions using Google's Gemini API</li>
+                <li>Maintains conversation context for better interactions</li>
+                <li>Works in channels and threads</li>
+                <li>Easy to set up and use</li>
+            </ul>
+        </div>
+
+        <a href="https://slack.com/oauth/v2/authorize?client_id={{ client_id }}&scope=app_mentions:read,chat:write,channels:history&user_scope=" 
+           class="slack-btn">
+            <img alt="Add to Slack" 
+                 src="https://platform.slack-edge.com/img/add_to_slack.png" 
+                 srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"/>
+        </a>
+    </div>
+</body>
+</html>

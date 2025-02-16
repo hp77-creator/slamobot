@@ -1,10 +1,10 @@
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+import sqlite3
 
-
-from .config import SLACK_BOT_TOKEN, SLACK_APP_TOKEN, GOOGLE_API_KEY
+from .config import SLACK_APP_TOKEN, GOOGLE_API_KEY
 from .db import Database
 from .llm import LLM
 
@@ -12,14 +12,45 @@ logger = logging.getLogger(__name__)
 
 class SlackBot:
     def __init__(self):
-        self.app = App(token=SLACK_BOT_TOKEN)
         self.db = Database()
         self.model = LLM(API_KEY=GOOGLE_API_KEY, model_name='gemini-pro')
-        self._setup_handlers()
+        self.workspace_apps: Dict[str, App] = {}
+        self.handlers: Dict[str, SocketModeHandler] = {}
+        self._initialize_workspaces()
+        
+    def _initialize_workspaces(self) -> None:
+        """Initialize apps for all workspaces in the database."""
+        try:
+            with self.db.get_connection() as conn:
+                c = conn.cursor()
+                c.execute('SELECT team_id, bot_token FROM workspaces')
+                workspaces = c.fetchall()
+                
+                for team_id, bot_token in workspaces:
+                    self._setup_workspace(team_id, bot_token)
+        except sqlite3.Error as e:
+            logger.error(f"Database error during workspace initialization: {e}")
+            raise
 
-    def _setup_handlers(self) -> None:
+    def _setup_workspace(self, team_id: str, bot_token: str) -> None:
+        """Set up a Slack app instance for a specific workspace."""
+        try:
+            app = App(token=bot_token)
+            self._setup_handlers(app)
+            self.workspace_apps[team_id] = app
+            
+            # Create and store handler
+            handler = SocketModeHandler(app, SLACK_APP_TOKEN)
+            self.handlers[team_id] = handler
+            
+            logger.info(f"Set up workspace: {team_id}")
+        except Exception as e:
+            logger.error(f"Error setting up workspace {team_id}: {e}")
+            raise
+
+    def _setup_handlers(self, app: App) -> None:
         """Set up event handlers for the Slack bot."""
-        @self.app.event("app_mention")
+        @app.event("app_mention")
         def handle_mention(event, say):
             try:
                 thread_ts = event.get("thread_ts", event["ts"])
@@ -28,6 +59,11 @@ class SlackBot:
                 
                 logger.info(f"Received mention: channel={channel_id}, thread={thread_ts}, "
                           f"message={user_message}")
+                
+                # Get team ID from the event
+                team_id = event.get("team_id") or event.get("team")
+                if not team_id:
+                    raise ValueError("Could not determine team ID from event")
                 
                 # Store user message
                 self.db.store_message(channel_id, thread_ts, event["user"], 
@@ -43,7 +79,6 @@ class SlackBot:
                     for msg, is_bot in history
                 ])
                 
-                # TODO: Add LLM integration here
                 response = self.model.get_chat_response(context) 
                 logger.info(f"Sending response: {response}")
                 
@@ -83,11 +118,22 @@ class SlackBot:
             }
 
     def start(self) -> None:
-        """Start the Slack bot."""
+        """Start all workspace handlers."""
         try:
-            handler = SocketModeHandler(self.app, SLACK_APP_TOKEN)
-            logger.info("Starting Slack bot...")
-            handler.start()
+            logger.info("Starting Slack bot handlers...")
+            for team_id, handler in self.handlers.items():
+                handler.start()
         except Exception as e:
-            logger.error(f"Error starting bot: {e}")
+            logger.error(f"Error starting bot handlers: {e}")
+            raise
+
+    def add_workspace(self, team_id: str, bot_token: str) -> None:
+        """Add a new workspace to the bot."""
+        try:
+            self._setup_workspace(team_id, bot_token)
+            # Start the handler for the new workspace
+            self.handlers[team_id].start()
+            logger.info(f"Added new workspace: {team_id}")
+        except Exception as e:
+            logger.error(f"Error adding workspace {team_id}: {e}")
             raise
