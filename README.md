@@ -1,6 +1,16 @@
-# Slack Bot with LLM Integration
+# Slamobot - Slack Bot with LLM Integration
+
+![WhatsApp Image 2025-02-16 at 22 21 23](https://github.com/user-attachments/assets/870f425e-2fb5-41b1-adbb-653ed68c0e2f)
+
 
 A Slack bot that uses Google's Gemini API to provide intelligent responses while maintaining conversation history.
+
+
+## Youtube Demo
+[![Youtube Demo](https://img.youtube.com/vi/nxdjyiEglxQ/0.jpg)](https://www.youtube.com/watch?v=nxdjyiEglxQ)
+
+
+* Peerlist project link: https://peerlist.io/itshp77/project/slamobot
 
 ## Features
 
