@@ -21,7 +21,7 @@ class SlackBot:
             signing_secret=os.environ.get("SLACK_SIGNING_SECRET"),
             installation_store_bot_only=True,
             token=None,  # Don't use a single token in OAuth mode
-            authorize=self._authorize  # Add authorize function
+            authorize=SlackBot._authorize  # Use static method
         )
         
         # Set up event handlers
@@ -30,7 +30,8 @@ class SlackBot:
         # Create socket mode handler
         self.handler = SocketModeHandler(self.app, SLACK_APP_TOKEN)
         
-    def _authorize(self, enterprise_id: Optional[str], team_id: Optional[str], **kwargs) -> Optional[Dict]:
+    @staticmethod
+    def _authorize(enterprise_id: Optional[str], team_id: Optional[str], **kwargs) -> Optional[Dict]:
         """Authorize incoming requests using stored tokens."""
         logger.info(f"Authorizing request for team_id: {team_id}")
         
@@ -38,8 +39,11 @@ class SlackBot:
             logger.error("No team_id provided for authorization")
             return None
             
+        # Create a new database instance for authorization
+        db = Database()
+        
         # Get workspace details from database
-        workspace = self.db.get_workspace(team_id)
+        workspace = db.get_workspace(team_id)
         if workspace:
             logger.info(f"Found authorization for team {team_id}")
             return {
