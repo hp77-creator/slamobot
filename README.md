@@ -94,6 +94,22 @@ slamobot/
    ```
 
 2. Deploy to Railway (Recommended for production):
+
+   A. Using GitHub (Recommended):
+   1. Fork this repository
+   2. Create a new project in Railway
+   3. Connect your GitHub repository
+   4. Add these environment variables in Railway dashboard:
+      ```
+      SLACK_BOT_TOKEN=xoxb-your-bot-token
+      SLACK_APP_TOKEN=xapp-your-app-token
+      SLACK_CLIENT_ID=your-client-id
+      SLACK_CLIENT_SECRET=your-client-secret
+      GOOGLE_API_KEY=your-gemini-api-key
+      ```
+   5. Railway will automatically deploy on push
+
+   B. Using Railway CLI:
    ```bash
    # Install Railway CLI
    npm i -g @railway/cli
@@ -104,20 +120,18 @@ slamobot/
    # Create a new project
    railway init
 
-   # Deploy with persistent volume for database
+   # Set required environment variables
+   railway variables set SLACK_BOT_TOKEN=xoxb-your-bot-token
+   railway variables set SLACK_APP_TOKEN=xapp-your-app-token
+   railway variables set SLACK_CLIENT_ID=your-client-id
+   railway variables set SLACK_CLIENT_SECRET=your-client-secret
+   railway variables set GOOGLE_API_KEY=your-gemini-api-key
+
+   # Deploy with persistent volume
    railway up --volume /app/data
    ```
 
-   Or deploy using GitHub:
-   1. Fork this repository
-   2. Create a new project in Railway
-   3. Connect your GitHub repository
-   4. Add environment variables in Railway dashboard:
-      - SLACK_APP_TOKEN
-      - SLACK_CLIENT_ID
-      - SLACK_CLIENT_SECRET
-      - GOOGLE_API_KEY
-   5. Railway will automatically deploy on push
+   The application will validate environment variables on startup and provide clear error messages if any are missing.
 
 3. Interact with the bot:
    ```
