@@ -35,11 +35,23 @@ class LLM:
             raise NotImplementedError("Chat with history not implemented yet.")
     
     def get_chat_response(self, prompt):
+        system_prompt = """
+            Format your response using Slack markdown:
+            - Use *bold* for emphasis
+            - Use _italic_ for subtle emphasis
+            - Use `code` for technical terms
+            - Use ```code blocks``` for longer code
+            - Use > for quotes
+            - Use bullet points with •
+            - Add emojis where appropriate 🎯
+            
+            Current conversation:
+            """
         try:
             if self.chat is None:
                 self.chat_with_history()
-            
-            response = self.chat.send_message(prompt)
+            formatted_prompt = system_prompt + prompt
+            response = self.chat.send_message(formatted_prompt)
             return response.text
         except Exception as e:
             raise Exception(f"Error getting chat response: {str(e)}")

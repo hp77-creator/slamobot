@@ -51,12 +51,36 @@ class SlackBot:
                 self.db.store_message(channel_id, thread_ts, "BOT", response, True)
                 
                 # Send response
-                say(text=response, thread_ts=thread_ts)
+                say(blocks=format_response(response), thread_ts=thread_ts)
                 
             except Exception as e:
                 logger.error(f"Error in handle_mention: {e}")
                 error_msg = f"Sorry, I encountered an error: {str(e)}"
                 say(text=error_msg, thread_ts=thread_ts)
+
+        def format_response(response: str) -> dict:
+            return {
+                "blocks": [
+                    {
+                        "type": "header",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "🤖 Bot Response",
+                            "emoji": True
+                        }
+                    },
+                    {
+                        "type": "divider"
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": response
+                        }
+                    }
+                ]
+            }
 
     def start(self) -> None:
         """Start the Slack bot."""
