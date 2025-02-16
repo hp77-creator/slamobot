@@ -33,6 +33,7 @@ class SlackBot:
         """Set up event handlers for the Slack bot."""
         @self.app.event("app_mention")
         def handle_mention(event, say, context):
+            logger.info(f"Received event: {event}")
             try:
                 thread_ts = event.get("thread_ts", event["ts"])
                 channel_id = event["channel"]
@@ -45,6 +46,8 @@ class SlackBot:
                 team_id = event.get("team_id") or event.get("team")
                 if not team_id:
                     raise ValueError("Could not determine team ID from event")
+                
+                logger.info(f"Processing message for team {team_id}")
                 
                 # Store user message
                 self.db.store_message(channel_id, thread_ts, event["user"], 
@@ -70,9 +73,14 @@ class SlackBot:
                 say(**format_response(response), thread_ts=thread_ts)
                 
             except Exception as e:
-                logger.error(f"Error in handle_mention: {e}")
+                logger.error(f"Error in handle_mention: {e}", exc_info=True)
                 error_msg = f"Sorry, I encountered an error: {str(e)}"
                 say(text=error_msg, thread_ts=thread_ts)
+
+        # Add a message listener for debugging
+        @self.app.message("")
+        def handle_message(message, say, context):
+            logger.info(f"Received message: {message}")
 
         def format_response(response: str) -> dict:
             return {
@@ -102,9 +110,17 @@ class SlackBot:
         """Start the bot."""
         try:
             logger.info("Starting Slack bot...")
+            # Log app configuration
+            logger.info(f"App Configuration:")
+            logger.info(f"  Signing Secret: {'Set' if os.environ.get('SLACK_SIGNING_SECRET') else 'Not Set'}")
+            logger.info(f"  App Token: {'Set' if SLACK_APP_TOKEN else 'Not Set'}")
+            logger.info(f"  Client ID: {'Set' if os.environ.get('SLACK_CLIENT_ID') else 'Not Set'}")
+            logger.info(f"  Client Secret: {'Set' if os.environ.get('SLACK_CLIENT_SECRET') else 'Not Set'}")
+            
+            # Start the handler
             self.handler.start()
         except Exception as e:
-            logger.error(f"Error starting bot: {e}")
+            logger.error(f"Error starting bot: {e}", exc_info=True)
             raise
 
     def add_workspace(self, team_id: str, team_name: str, bot_token: str) -> None:
@@ -114,5 +130,5 @@ class SlackBot:
                 raise Exception("Failed to store workspace in database")
             logger.info(f"Added workspace to database: {team_id} ({team_name})")
         except Exception as e:
-            logger.error(f"Error adding workspace {team_id}: {e}")
+            logger.error(f"Error adding workspace {team_id}: {e}", exc_info=True)
             raise
