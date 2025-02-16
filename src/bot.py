@@ -3,6 +3,7 @@ from typing import List, Tuple, Dict
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import sqlite3
+import os
 
 from .config import SLACK_APP_TOKEN, GOOGLE_API_KEY
 from .db import Database
@@ -14,44 +15,24 @@ class SlackBot:
     def __init__(self):
         self.db = Database()
         self.model = LLM(API_KEY=GOOGLE_API_KEY, model_name='gemini-pro')
-        self.workspace_apps: Dict[str, App] = {}
-        self.handlers: Dict[str, SocketModeHandler] = {}
-        self._initialize_workspaces()
         
-    def _initialize_workspaces(self) -> None:
-        """Initialize apps for all workspaces in the database."""
-        try:
-            workspaces = self.db.get_workspaces()
-            if not workspaces:
-                logger.info("No workspaces found in database. Waiting for installations.")
-                return
-                
-            for team_id, bot_token in workspaces:
-                self._setup_workspace(team_id, bot_token)
-        except Exception as e:
-            logger.error(f"Error during workspace initialization: {e}")
-            logger.info("Continuing without workspace initialization")
-
-    def _setup_workspace(self, team_id: str, bot_token: str) -> None:
-        """Set up a Slack app instance for a specific workspace."""
-        try:
-            app = App(token=bot_token)
-            self._setup_handlers(app)
-            self.workspace_apps[team_id] = app
-            
-            # Create and store handler
-            handler = SocketModeHandler(app, SLACK_APP_TOKEN)
-            self.handlers[team_id] = handler
-            
-            logger.info(f"Set up workspace: {team_id}")
-        except Exception as e:
-            logger.error(f"Error setting up workspace {team_id}: {e}")
-            raise
-
-    def _setup_handlers(self, app: App) -> None:
+        # Initialize single app instance with OAuth
+        self.app = App(
+            signing_secret=os.environ.get("SLACK_SIGNING_SECRET"),
+            installation_store_bot_only=True,
+            token=None  # Don't use a single token in OAuth mode
+        )
+        
+        # Set up event handlers
+        self._setup_handlers()
+        
+        # Create socket mode handler
+        self.handler = SocketModeHandler(self.app, SLACK_APP_TOKEN)
+        
+    def _setup_handlers(self) -> None:
         """Set up event handlers for the Slack bot."""
-        @app.event("app_mention")
-        def handle_mention(event, say):
+        @self.app.event("app_mention")
+        def handle_mention(event, say, context):
             try:
                 thread_ts = event.get("thread_ts", event["ts"])
                 channel_id = event["channel"]
@@ -118,26 +99,20 @@ class SlackBot:
             }
 
     def start(self) -> None:
-        """Start all workspace handlers."""
+        """Start the bot."""
         try:
-            logger.info("Starting Slack bot handlers...")
-            for team_id, handler in self.handlers.items():
-                handler.start()
+            logger.info("Starting Slack bot...")
+            self.handler.start()
         except Exception as e:
-            logger.error(f"Error starting bot handlers: {e}")
+            logger.error(f"Error starting bot: {e}")
             raise
 
     def add_workspace(self, team_id: str, team_name: str, bot_token: str) -> None:
-        """Add a new workspace to the bot."""
+        """Add a new workspace to the database."""
         try:
-            # Store in database first
             if not self.db.add_workspace(team_id, team_name, bot_token):
                 raise Exception("Failed to store workspace in database")
-            
-            # Set up and start the workspace
-            self._setup_workspace(team_id, bot_token)
-            self.handlers[team_id].start()
-            logger.info(f"Added and started new workspace: {team_id} ({team_name})")
+            logger.info(f"Added workspace to database: {team_id} ({team_name})")
         except Exception as e:
             logger.error(f"Error adding workspace {team_id}: {e}")
             raise
