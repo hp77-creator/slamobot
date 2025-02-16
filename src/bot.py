@@ -21,16 +21,16 @@ class SlackBot:
     def _initialize_workspaces(self) -> None:
         """Initialize apps for all workspaces in the database."""
         try:
-            with self.db.get_connection() as conn:
-                c = conn.cursor()
-                c.execute('SELECT team_id, bot_token FROM workspaces')
-                workspaces = c.fetchall()
+            workspaces = self.db.get_workspaces()
+            if not workspaces:
+                logger.info("No workspaces found in database. Waiting for installations.")
+                return
                 
-                for team_id, bot_token in workspaces:
-                    self._setup_workspace(team_id, bot_token)
-        except sqlite3.Error as e:
-            logger.error(f"Database error during workspace initialization: {e}")
-            raise
+            for team_id, bot_token in workspaces:
+                self._setup_workspace(team_id, bot_token)
+        except Exception as e:
+            logger.error(f"Error during workspace initialization: {e}")
+            logger.info("Continuing without workspace initialization")
 
     def _setup_workspace(self, team_id: str, bot_token: str) -> None:
         """Set up a Slack app instance for a specific workspace."""
@@ -127,13 +127,17 @@ class SlackBot:
             logger.error(f"Error starting bot handlers: {e}")
             raise
 
-    def add_workspace(self, team_id: str, bot_token: str) -> None:
+    def add_workspace(self, team_id: str, team_name: str, bot_token: str) -> None:
         """Add a new workspace to the bot."""
         try:
+            # Store in database first
+            if not self.db.add_workspace(team_id, team_name, bot_token):
+                raise Exception("Failed to store workspace in database")
+            
+            # Set up and start the workspace
             self._setup_workspace(team_id, bot_token)
-            # Start the handler for the new workspace
             self.handlers[team_id].start()
-            logger.info(f"Added new workspace: {team_id}")
+            logger.info(f"Added and started new workspace: {team_id} ({team_name})")
         except Exception as e:
             logger.error(f"Error adding workspace {team_id}: {e}")
             raise

@@ -21,6 +21,17 @@ class Database:
         try:
             with self.get_connection() as conn:
                 c = conn.cursor()
+                # Create workspaces table first
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS workspaces
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    team_id TEXT UNIQUE,
+                    team_name TEXT,
+                    bot_token TEXT,
+                    installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+                ''')
+                
+                # Create messages table
                 c.execute('''
                     CREATE TABLE IF NOT EXISTS messages
                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,6 +47,33 @@ class Database:
         except Exception as e:
             logger.error(f"Error initializing database: {e}")
             raise
+
+    def get_workspaces(self) -> List[Tuple[str, str]]:
+        """Get all workspaces from the database."""
+        try:
+            with self.get_connection() as conn:
+                c = conn.cursor()
+                c.execute('SELECT team_id, bot_token FROM workspaces')
+                return c.fetchall()
+        except sqlite3.Error as e:
+            logger.error(f"Error getting workspaces: {e}")
+            return []
+
+    def add_workspace(self, team_id: str, team_name: str, bot_token: str) -> bool:
+        """Add or update a workspace in the database."""
+        try:
+            with self.get_connection() as conn:
+                c = conn.cursor()
+                c.execute('''
+                    INSERT OR REPLACE INTO workspaces (team_id, team_name, bot_token)
+                    VALUES (?, ?, ?)
+                ''', (team_id, team_name, bot_token))
+                conn.commit()
+            logger.info(f"Workspace added/updated: {team_id}")
+            return True
+        except sqlite3.Error as e:
+            logger.error(f"Error adding workspace: {e}")
+            return False
 
     def store_message(self, channel_id: str, thread_ts: str, user_id: str, 
                      message: str, is_bot: bool) -> None:

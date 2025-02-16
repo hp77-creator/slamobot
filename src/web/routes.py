@@ -36,31 +36,26 @@ def oauth_redirect():
             return render_template('error.html', 
                                 error=f"Slack error: {response.get('error')}")
 
-        # Store tokens in database
-        team_id = response['team']['id']
-        team_name = response['team']['name']
-        bot_token = response['access_token']
+        try:
+            # Store tokens in database and initialize bot for the workspace
+            team_id = response['team']['id']
+            team_name = response['team']['name']
+            bot_token = response['access_token']
 
-        # Update database schema if needed
-        with db.get_connection() as conn:
-            c = conn.cursor()
-            c.execute('''
-                CREATE TABLE IF NOT EXISTS workspaces
-                (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                team_id TEXT UNIQUE,
-                team_name TEXT,
-                bot_token TEXT,
-                installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-            ''')
+            # Add workspace to database and initialize bot
+            if not db.add_workspace(team_id, team_name, bot_token):
+                raise Exception("Failed to store workspace in database")
+
+            # Initialize bot for this workspace
+            from .. import bot
+            bot_instance = bot.SlackBot()
+            bot_instance.add_workspace(team_id, team_name, bot_token)
+
+            return render_template('success.html', team_name=team_name)
             
-            # Insert or update workspace
-            c.execute('''
-                INSERT OR REPLACE INTO workspaces (team_id, team_name, bot_token)
-                VALUES (?, ?, ?)
-            ''', (team_id, team_name, bot_token))
-            conn.commit()
-
-        return render_template('success.html', team_name=team_name)
+        except KeyError as e:
+            return render_template('error.html', 
+                                error=f"Invalid response from Slack: missing {str(e)}")
 
     except Exception as e:
         return render_template('error.html', error=str(e))

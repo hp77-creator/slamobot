@@ -8,6 +8,8 @@ A Slack bot that uses Google's Gemini API to provide intelligent responses while
 - Maintains conversation history (last 5 messages)
 - Includes both user messages and bot responses in context
 - Uses Google's Gemini API for intelligent responses
+- Supports multiple Slack workspaces
+- Easy one-click installation
 - Modular architecture for easy maintenance and extension
 
 ## Project Structure
@@ -18,13 +20,26 @@ slamobot/
 │   ├── __init__.py
 │   ├── config.py      # Configuration settings
 │   ├── db.py          # Database operations
-│   └── bot.py         # Slack bot implementation
+│   ├── bot.py         # Slack bot implementation
+│   └── web/           # Web server for OAuth
+│       ├── __init__.py
+│       ├── routes.py
+│       └── templates/
 ├── main.py            # Application entry point
 ├── requirements.txt   # Python dependencies
 └── .env              # Environment variables
 ```
 
-## Local Setup
+## Quick Setup
+
+### Option 1: One-Click Installation (Recommended)
+
+1. Visit our installation page: `https://your-bot-domain.up.railway.app`
+2. Click "Add to Slack" button
+3. Authorize the app for your workspace
+4. Start using the bot in your channels!
+
+### Option 2: Local Development Setup
 
 1. Create a Slack App:
    - Go to [api.slack.com/apps](https://api.slack.com/apps)
@@ -60,6 +75,8 @@ slamobot/
    SLACK_BOT_TOKEN=xoxb-your-bot-token
    SLACK_APP_TOKEN=xapp-your-app-token
    GOOGLE_API_KEY=your-gemini-api-key
+   SLACK_CLIENT_ID=your-client-id
+   SLACK_CLIENT_SECRET=your-client-secret
    ```
 
 ## Usage
@@ -84,8 +101,8 @@ slamobot/
    # Create a new project
    railway init
 
-   # Deploy the project
-   railway up
+   # Deploy with persistent volume for database
+   railway up --volume /app/data
    ```
 
    Or deploy using GitHub:
@@ -93,8 +110,9 @@ slamobot/
    2. Create a new project in Railway
    3. Connect your GitHub repository
    4. Add environment variables in Railway dashboard:
-      - SLACK_BOT_TOKEN
       - SLACK_APP_TOKEN
+      - SLACK_CLIENT_ID
+      - SLACK_CLIENT_SECRET
       - GOOGLE_API_KEY
    5. Railway will automatically deploy on push
 
@@ -103,16 +121,32 @@ slamobot/
    /invite @YourBotName
    ```
 
-3. Mention the bot to get a response:
+4. Mention the bot to get a response:
    ```
    @YourBotName What's the weather like?
    ```
 
 ## Development
 
-- The bot uses SQLite for storing message history (persistent in Railway deployment)
-- Messages are stored with thread context
+- The bot uses SQLite for storing:
+  * Message history (with thread context)
+  * Workspace information (team ID, name, and tokens)
 - Last 5 messages (including bot responses) are included in LLM context
+- Supports multiple workspaces through OAuth installation
+- Web server handles OAuth flow and provides installation page
+
+## Production Deployment
+
+1. Configure Slack App:
+   - Add OAuth Redirect URL: `https://your-domain.up.railway.app/slack/oauth_redirect`
+   - Set App Home URL: `https://your-domain.up.railway.app`
+   - Enable public distribution if desired
+
+2. Set up Railway:
+   - Configure environment variables
+   - Set up persistent volume for database
+   - Enable health checks
+   - Configure custom domain (optional)
 
 ## Contributing
 
