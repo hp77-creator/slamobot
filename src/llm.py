@@ -9,7 +9,7 @@ class LLM:
         self.chat = None
 
         if 'gemini' in model_name.lower():
-            genai.configure(self.api_key)
+            genai.configure(api_key=self.api_key)
             self.model = genai.GenerativeModel(model_name)
         else:
             raise NotImplementedError(f"Model {model_name} is not supported yet")

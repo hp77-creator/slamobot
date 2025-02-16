@@ -3,10 +3,10 @@ from typing import List, Tuple
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from src.llm import LLM
 
 from .config import SLACK_BOT_TOKEN, SLACK_APP_TOKEN, GOOGLE_API_KEY
 from .db import Database
+from .llm import LLM
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class SlackBot:
     def __init__(self):
         self.app = App(token=SLACK_BOT_TOKEN)
         self.db = Database()
-        self.model = LLM(GOOGLE_API_KEY, 'gemini-1.5-flash')
+        self.model = LLM(API_KEY=GOOGLE_API_KEY, model_name='gemini-pro')
         self._setup_handlers()
 
     def _setup_handlers(self) -> None:
