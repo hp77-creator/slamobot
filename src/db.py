@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 import logging
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 from .config import DB_PATH
 
