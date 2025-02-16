@@ -1,0 +1,32 @@
+[build]
+builder = "nixpacks"
+buildCommand = "chmod +x startup.sh"
+
+[deploy]
+startCommand = "./startup.sh"
+healthcheckPath = "/health"
+healthcheckTimeout = 10
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 5
+
+[deploy.envs]
+PYTHONUNBUFFERED = "1"
+
+[[mounts]]
+source = "data"
+destination = "/app/data"
+
+# Service configuration
+[[services]]
+internal_port = 5000
+protocol = "http"
+
+# Environment variables that must be set
+[services.environment_variables]
+required = [
+  "SLACK_BOT_TOKEN",
+  "SLACK_APP_TOKEN",
+  "SLACK_CLIENT_ID",
+  "SLACK_CLIENT_SECRET",
+  "GOOGLE_API_KEY"
+]

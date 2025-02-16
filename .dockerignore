@@ -48,3 +48,11 @@ logs/
 # System
 .DS_Store
 Thumbs.db
+
+# Railway specific
+.railway/
+railway-*.json
+
+# Keep these files
+!startup.sh
+!railway.toml
