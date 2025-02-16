@@ -5,8 +5,22 @@ from dotenv import load_dotenv
 # Set up logging
 logger = logging.getLogger(__name__)
 
+def log_env_vars():
+    """Log all environment variables (with sensitive data masked)."""
+    logger.info("Environment Variables:")
+    for key in sorted(os.environ):
+        value = os.environ[key]
+        # Mask sensitive values
+        if any(secret in key.lower() for secret in ['token', 'key', 'secret', 'password']):
+            masked_value = value[:6] + "..." if value else "Not set"
+        else:
+            masked_value = value
+        logger.info(f"  {key}: {masked_value}")
+
+
 # Load environment variables
 load_dotenv()
+log_env_vars()
 
 def get_required_env(key: str) -> str:
     """Get a required environment variable or log an error."""
