@@ -1,17 +1,54 @@
 import os
+import logging
 from dotenv import load_dotenv
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
 
+def get_required_env(key: str) -> str:
+    """Get a required environment variable or log an error."""
+    value = os.environ.get(key)
+    if not value:
+        logger.error(f"Required environment variable {key} is not set")
+    else:
+        logger.info(f"Loaded {key} environment variable")
+    return value
+
 # Slack configuration
-SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
-SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
-SLACK_CLIENT_ID = os.environ.get("SLACK_CLIENT_ID")
-SLACK_CLIENT_SECRET = os.environ.get("SLACK_CLIENT_SECRET")
+SLACK_BOT_TOKEN = get_required_env("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN = get_required_env("SLACK_APP_TOKEN")
+SLACK_CLIENT_ID = get_required_env("SLACK_CLIENT_ID")
+SLACK_CLIENT_SECRET = get_required_env("SLACK_CLIENT_SECRET")
 
 # Database configuration
 DB_PATH = os.environ.get("DB_PATH", "messages.db")
+logger.info(f"Using database path: {DB_PATH}")
 
 # LLM configuration
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+GOOGLE_API_KEY = get_required_env("GOOGLE_API_KEY")
+
+# Validate required configuration
+REQUIRED_VARS = [
+    SLACK_BOT_TOKEN,
+    SLACK_APP_TOKEN,
+    SLACK_CLIENT_ID,
+    SLACK_CLIENT_SECRET,
+    GOOGLE_API_KEY
+]
+
+if not all(REQUIRED_VARS):
+    missing = [
+        var for var, value in {
+            "SLACK_BOT_TOKEN": SLACK_BOT_TOKEN,
+            "SLACK_APP_TOKEN": SLACK_APP_TOKEN,
+            "SLACK_CLIENT_ID": SLACK_CLIENT_ID,
+            "SLACK_CLIENT_SECRET": SLACK_CLIENT_SECRET,
+            "GOOGLE_API_KEY": GOOGLE_API_KEY
+        }.items() if not value
+    ]
+    logger.error(f"Missing required environment variables: {', '.join(missing)}")
+else:
+    logger.info("All required environment variables are set")
