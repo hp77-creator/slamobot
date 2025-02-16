@@ -51,7 +51,7 @@ class SlackBot:
                 self.db.store_message(channel_id, thread_ts, "BOT", response, True)
                 
                 # Send response
-                say(blocks=format_response(response), thread_ts=thread_ts)
+                say(**format_response(response), thread_ts=thread_ts)
                 
             except Exception as e:
                 logger.error(f"Error in handle_mention: {e}")
