@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "chmod +x startup.sh"
+buildCommand = "chmod +x startup.sh && ./startup.sh"
 
 [deploy]
 startCommand = "./startup.sh"
