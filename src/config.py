@@ -17,7 +17,6 @@ def log_env_vars():
             masked_value = value
         logger.info(f"  {key}: {masked_value}")
 
-
 # Load environment variables
 load_dotenv()
 log_env_vars()
@@ -36,6 +35,7 @@ SLACK_BOT_TOKEN = get_required_env("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = get_required_env("SLACK_APP_TOKEN")
 SLACK_CLIENT_ID = get_required_env("SLACK_CLIENT_ID")
 SLACK_CLIENT_SECRET = get_required_env("SLACK_CLIENT_SECRET")
+SLACK_SIGNING_SECRET = get_required_env("SLACK_SIGNING_SECRET")
 
 # Database configuration
 DB_PATH = os.environ.get("DB_PATH", "messages.db")
@@ -50,6 +50,7 @@ REQUIRED_VARS = [
     SLACK_APP_TOKEN,
     SLACK_CLIENT_ID,
     SLACK_CLIENT_SECRET,
+    SLACK_SIGNING_SECRET,
     GOOGLE_API_KEY
 ]
 
@@ -60,6 +61,7 @@ if not all(REQUIRED_VARS):
             "SLACK_APP_TOKEN": SLACK_APP_TOKEN,
             "SLACK_CLIENT_ID": SLACK_CLIENT_ID,
             "SLACK_CLIENT_SECRET": SLACK_CLIENT_SECRET,
+            "SLACK_SIGNING_SECRET": SLACK_SIGNING_SECRET,
             "GOOGLE_API_KEY": GOOGLE_API_KEY
         }.items() if not value
     ]

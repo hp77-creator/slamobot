@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for
 import requests
 import logging
+import os
 from . import app
 from ..db import Database
 from .. import config
@@ -18,7 +19,8 @@ def health():
         'SLACK_CLIENT_ID': config.SLACK_CLIENT_ID,
         'SLACK_CLIENT_SECRET': config.SLACK_CLIENT_SECRET,
         'SLACK_APP_TOKEN': config.SLACK_APP_TOKEN,
-        'GOOGLE_API_KEY': config.GOOGLE_API_KEY
+        'GOOGLE_API_KEY': config.GOOGLE_API_KEY,
+        'SLACK_SIGNING_SECRET': os.environ.get('SLACK_SIGNING_SECRET')
     }
     
     missing_vars = [key for key, value in required_vars.items() if not value]
@@ -78,30 +80,33 @@ def oauth_redirect():
             return render_template('error.html', error=f"Slack error: {error_msg}")
 
         try:
-            # Store tokens in database and initialize bot for the workspace
+            # Extract all necessary information
             team_id = response['team']['id']
             team_name = response['team']['name']
             bot_token = response['access_token']
+            bot_id = response['bot_user_id']
 
             logger.info(f"Received OAuth tokens for workspace: {team_name} ({team_id})")
+            logger.info(f"Bot User ID: {bot_id}")
 
-            # Add workspace to database and initialize bot
-            if not db.add_workspace(team_id, team_name, bot_token):
+            # Add workspace to database
+            if not db.add_workspace(team_id, team_name, bot_token, bot_id):
                 raise Exception("Failed to store workspace in database")
 
             # Initialize bot for this workspace
             from .. import bot
             bot_instance = bot.SlackBot()
-            bot_instance.add_workspace(team_id, team_name, bot_token)
+            bot_instance.add_workspace(team_id, team_name, bot_token, bot_id)
 
             logger.info(f"Successfully set up workspace: {team_name}")
             return render_template('success.html', team_name=team_name)
             
         except KeyError as e:
             logger.error(f"Invalid Slack response: missing {str(e)}")
+            logger.error(f"Response data: {response}")
             return render_template('error.html', 
                                 error=f"Invalid response from Slack: missing {str(e)}")
 
     except Exception as e:
-        logger.error(f"OAuth error: {str(e)}")
+        logger.error(f"OAuth error: {str(e)}", exc_info=True)
         return render_template('error.html', error=str(e))

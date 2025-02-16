@@ -1,5 +1,5 @@
 import logging
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import sqlite3
@@ -20,7 +20,8 @@ class SlackBot:
         self.app = App(
             signing_secret=os.environ.get("SLACK_SIGNING_SECRET"),
             installation_store_bot_only=True,
-            token=None  # Don't use a single token in OAuth mode
+            token=None,  # Don't use a single token in OAuth mode
+            authorize=self._authorize  # Add authorize function
         )
         
         # Set up event handlers
@@ -28,6 +29,27 @@ class SlackBot:
         
         # Create socket mode handler
         self.handler = SocketModeHandler(self.app, SLACK_APP_TOKEN)
+        
+    def _authorize(self, enterprise_id: Optional[str], team_id: Optional[str], **kwargs) -> Optional[Dict]:
+        """Authorize incoming requests using stored tokens."""
+        logger.info(f"Authorizing request for team_id: {team_id}")
+        
+        if not team_id:
+            logger.error("No team_id provided for authorization")
+            return None
+            
+        # Get workspace details from database
+        workspace = self.db.get_workspace(team_id)
+        if workspace:
+            logger.info(f"Found authorization for team {team_id}")
+            return {
+                "bot_token": workspace["bot_token"],
+                "bot_id": workspace.get("bot_id"),
+                "team_id": workspace["team_id"]
+            }
+            
+        logger.error(f"No authorization found for team {team_id}")
+        return None
         
     def _setup_handlers(self) -> None:
         """Set up event handlers for the Slack bot."""
@@ -123,10 +145,10 @@ class SlackBot:
             logger.error(f"Error starting bot: {e}", exc_info=True)
             raise
 
-    def add_workspace(self, team_id: str, team_name: str, bot_token: str) -> None:
+    def add_workspace(self, team_id: str, team_name: str, bot_token: str, bot_id: str) -> None:
         """Add a new workspace to the database."""
         try:
-            if not self.db.add_workspace(team_id, team_name, bot_token):
+            if not self.db.add_workspace(team_id, team_name, bot_token, bot_id):
                 raise Exception("Failed to store workspace in database")
             logger.info(f"Added workspace to database: {team_id} ({team_name})")
         except Exception as e:

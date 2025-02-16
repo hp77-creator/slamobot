@@ -21,6 +21,7 @@ class Database:
         try:
             with self.get_connection() as conn:
                 c = conn.cursor()
+                
                 # Create workspaces table first
                 c.execute('''
                     CREATE TABLE IF NOT EXISTS workspaces
@@ -28,8 +29,16 @@ class Database:
                     team_id TEXT UNIQUE,
                     team_name TEXT,
                     bot_token TEXT,
+                    bot_id TEXT,
                     installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
                 ''')
+                
+                # Check if bot_id column exists
+                c.execute("PRAGMA table_info(workspaces)")
+                columns = [col[1] for col in c.fetchall()]
+                if 'bot_id' not in columns:
+                    logger.info("Adding bot_id column to workspaces table")
+                    c.execute('ALTER TABLE workspaces ADD COLUMN bot_id TEXT')
                 
                 # Create messages table
                 c.execute('''
@@ -48,26 +57,62 @@ class Database:
             logger.error(f"Error initializing database: {e}")
             raise
 
-    def get_workspaces(self) -> List[Tuple[str, str]]:
+    def get_workspaces(self) -> List[Tuple[str, str, str, str]]:
         """Get all workspaces from the database."""
         try:
             with self.get_connection() as conn:
                 c = conn.cursor()
-                c.execute('SELECT team_id, bot_token FROM workspaces')
+                c.execute('SELECT team_id, team_name, bot_token, bot_id FROM workspaces')
                 return c.fetchall()
         except sqlite3.Error as e:
             logger.error(f"Error getting workspaces: {e}")
             return []
 
-    def add_workspace(self, team_id: str, team_name: str, bot_token: str) -> bool:
-        """Add or update a workspace in the database."""
+    def get_workspace(self, team_id: str) -> Optional[Dict[str, str]]:
+        """Get a specific workspace's details."""
         try:
             with self.get_connection() as conn:
                 c = conn.cursor()
                 c.execute('''
-                    INSERT OR REPLACE INTO workspaces (team_id, team_name, bot_token)
-                    VALUES (?, ?, ?)
-                ''', (team_id, team_name, bot_token))
+                    SELECT team_id, team_name, bot_token, bot_id 
+                    FROM workspaces 
+                    WHERE team_id = ?
+                ''', (team_id,))
+                result = c.fetchone()
+                if result:
+                    return {
+                        "team_id": result[0],
+                        "team_name": result[1],
+                        "bot_token": result[2],
+                        "bot_id": result[3]
+                    }
+                return None
+        except sqlite3.Error as e:
+            logger.error(f"Error getting workspace {team_id}: {e}")
+            return None
+
+    def add_workspace(self, team_id: str, team_name: str, bot_token: str, bot_id: str) -> bool:
+        """Add or update a workspace in the database."""
+        try:
+            with self.get_connection() as conn:
+                c = conn.cursor()
+                # Update schema if needed
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS workspaces
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    team_id TEXT UNIQUE,
+                    team_name TEXT,
+                    bot_token TEXT,
+                    bot_id TEXT,
+                    installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+                ''')
+                
+                # Insert or update workspace
+                c.execute('''
+                    INSERT OR REPLACE INTO workspaces 
+                    (team_id, team_name, bot_token, bot_id)
+                    VALUES (?, ?, ?, ?)
+                ''', (team_id, team_name, bot_token, bot_id))
                 conn.commit()
             logger.info(f"Workspace added/updated: {team_id}")
             return True
