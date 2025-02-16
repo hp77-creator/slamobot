@@ -1,6 +1,7 @@
 import logging
 from typing import List, Tuple, Dict, Optional
 from slack_bolt import App
+from slack_bolt.authorization import AuthorizeResult
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import sqlite3
 import os
@@ -31,7 +32,7 @@ class SlackBot:
         self.handler = SocketModeHandler(self.app, SLACK_APP_TOKEN)
         
     @staticmethod
-    def _authorize(enterprise_id: Optional[str], team_id: Optional[str], **kwargs) -> Optional[Dict]:
+    def _authorize(enterprise_id: Optional[str], team_id: Optional[str], **kwargs) -> Optional[AuthorizeResult]:
         """Authorize incoming requests using stored tokens."""
         logger.info(f"Authorizing request for team_id: {team_id}")
         
@@ -46,11 +47,13 @@ class SlackBot:
         workspace = db.get_workspace(team_id)
         if workspace:
             logger.info(f"Found authorization for team {team_id}")
-            return {
-                "bot_token": workspace["bot_token"],
-                "bot_id": workspace.get("bot_id"),
-                "team_id": workspace["team_id"]
-            }
+            return AuthorizeResult(
+                enterprise_id=enterprise_id,
+                team_id=workspace["team_id"],
+                bot_token=workspace["bot_token"],
+                bot_id=workspace.get("bot_id"),
+                bot_user_id=workspace.get("bot_id")  # Using bot_id as bot_user_id if no separate field exists
+            )
             
         logger.error(f"No authorization found for team {team_id}")
         return None
