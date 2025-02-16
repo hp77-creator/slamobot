@@ -77,5 +77,5 @@ def handle_mention(event, say):
 init_db()
 
 if __name__ == "__main__":
-    handler = SocketModeHandler(app, os.environ.get["SLACK_APP_TOKEN"])
+    handler = SocketModeHandler(app, os.environ.get("SLACK_APP_TOKEN"))
     handler.start()
