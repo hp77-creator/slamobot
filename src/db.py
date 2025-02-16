@@ -40,16 +40,18 @@ class Database:
                     logger.info("Adding bot_id column to workspaces table")
                     c.execute('ALTER TABLE workspaces ADD COLUMN bot_id TEXT')
                 
-                # Create messages table
+                # Create messages table with team_id foreign key
                 c.execute('''
                     CREATE TABLE IF NOT EXISTS messages
                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    team_id TEXT,
                     channel TEXT,
                     thread_ts TEXT,
                     user_id TEXT,
                     message TEXT,
                     is_bot TEXT,
-                    timestamp TEXT)
+                    timestamp TEXT,
+                    FOREIGN KEY (team_id) REFERENCES workspaces(team_id))
                 ''')
                 conn.commit()
             logger.info("Database initialized successfully")
@@ -120,7 +122,7 @@ class Database:
             logger.error(f"Error adding workspace: {e}")
             return False
 
-    def store_message(self, channel_id: str, thread_ts: str, user_id: str, 
+    def store_message(self, team_id: str, channel_id: str, thread_ts: str, user_id: str, 
                      message: str, is_bot: bool) -> None:
         """Store a message in the database."""
         try:
@@ -128,9 +130,9 @@ class Database:
                 c = conn.cursor()
                 is_bot_str = 'true' if is_bot else 'false'
                 c.execute('''
-                INSERT INTO messages (channel, thread_ts, user_id, message, is_bot, timestamp)
-                VALUES(?, ?, ?, ?, ?, ?)
-                ''', (channel_id, thread_ts, user_id, message, is_bot_str, 
+                INSERT INTO messages (team_id, channel, thread_ts, user_id, message, is_bot, timestamp)
+                VALUES(?, ?, ?, ?, ?, ?, ?)
+                ''', (team_id, channel_id, thread_ts, user_id, message, is_bot_str, 
                      datetime.now().isoformat()))
                 conn.commit()
             logger.info(f"Stored message: channel={channel_id}, thread={thread_ts}, "
@@ -139,7 +141,7 @@ class Database:
             logger.error(f"Error storing message: {e}")
             raise
 
-    def get_thread_history(self, channel_id: str, thread_ts: str, 
+    def get_thread_history(self, team_id: str, channel_id: str, thread_ts: str, 
                           limit: int = 5) -> List[Tuple[str, str]]:
         """Retrieve message history for a thread."""
         try:
@@ -147,9 +149,9 @@ class Database:
                 c = conn.cursor()
                 c.execute('''
                     SELECT message, is_bot FROM messages 
-                    WHERE channel=? AND thread_ts=?
+                    WHERE team_id=? AND channel=? AND thread_ts=?
                     ORDER BY timestamp DESC LIMIT ?
-                ''', (channel_id, thread_ts, limit))
+                ''', (team_id, channel_id, thread_ts, limit))
                 messages = c.fetchall()
             logger.info(f"Retrieved {len(messages)} messages for thread {thread_ts}")
             return messages[::-1]  # Reverse to get chronological order

@@ -79,11 +79,11 @@ class SlackBot:
                 logger.info(f"Processing message for team {team_id}")
                 
                 # Store user message
-                self.db.store_message(channel_id, thread_ts, event["user"], 
+                self.db.store_message(team_id, channel_id, thread_ts, event["user"], 
                                     user_message, False)
                 
                 # Get conversation history
-                history = self.db.get_thread_history(channel_id, thread_ts)
+                history = self.db.get_thread_history(team_id, channel_id, thread_ts)
                 logger.info(f"Retrieved history: {history}")
                 
                 # Convert 'true'/'false' strings back to boolean for formatting
@@ -96,7 +96,7 @@ class SlackBot:
                 logger.info(f"Sending response: {response}")
                 
                 # Store bot response
-                self.db.store_message(channel_id, thread_ts, "BOT", response, True)
+                self.db.store_message(team_id, channel_id, thread_ts, "BOT", response, True)
                 
                 # Send response
                 say(**format_response(response), thread_ts=thread_ts)
