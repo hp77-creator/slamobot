@@ -40,6 +40,8 @@ def health():
 def index():
     """Landing page with 'Add to Slack' button."""
     client_id = os.environ.get('SLACK_CLIENT_ID')
+    safe_client_id = f"{client_id[:6]}..." if client_id else "None"
+    app.logger.info(f"Using Slack Client ID: {safe_client_id}")
     if not client_id:
         return render_template('error.html', 
                              error="SLACK_CLIENT_ID environment variable is not set. Please configure the application properly.")
