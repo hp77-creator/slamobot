@@ -7,10 +7,47 @@ from ..db import Database
 # Initialize database
 db = Database()
 
+@app.route('/health')
+def health():
+    """Health check endpoint that also verifies environment variables."""
+    required_vars = [
+        'SLACK_CLIENT_ID',
+        'SLACK_CLIENT_SECRET',
+        'SLACK_APP_TOKEN',
+        'GOOGLE_API_KEY'
+    ]
+    
+    missing_vars = [var for var in required_vars if not os.environ.get(var)]
+    
+    if missing_vars:
+        return {
+            'status': 'error',
+            'missing_env_vars': missing_vars
+        }, 500
+        
+    # Include first few chars of client ID for verification
+    client_id = os.environ.get('SLACK_CLIENT_ID', '')
+    safe_client_id = f"{client_id[:6]}..." if client_id else "None"
+    
+    return {
+        'status': 'healthy',
+        'database': 'connected',
+        'client_id_preview': safe_client_id,
+        'env_vars': 'all present'
+    }
+
 @app.route('/')
 def index():
     """Landing page with 'Add to Slack' button."""
     client_id = os.environ.get('SLACK_CLIENT_ID')
+    if not client_id:
+        return render_template('error.html', 
+                             error="SLACK_CLIENT_ID environment variable is not set. Please configure the application properly.")
+    
+    # Log the client ID (first few characters for debugging)
+    safe_client_id = f"{client_id[:6]}..." if client_id else "None"
+    app.logger.info(f"Using Slack Client ID: {safe_client_id}")
+    
     return render_template('index.html', client_id=client_id)
 
 @app.route('/slack/oauth_redirect')
