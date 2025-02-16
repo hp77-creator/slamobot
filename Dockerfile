@@ -20,10 +20,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy startup script and make it executable
 COPY startup.sh .
-RUN chmod +x startup.sh
 
 # Copy the rest of the application
 COPY . .
+RUN chmod +x startup.sh
 
 # Create directory for SQLite database with proper permissions
 RUN mkdir -p /app/data && \
