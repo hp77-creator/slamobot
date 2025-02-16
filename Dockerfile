@@ -10,6 +10,7 @@ RUN apt-get update && \
     gcc \
     curl \
     bash \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
@@ -18,21 +19,19 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy startup script and make it executable
-COPY startup.sh .
-
-# Copy the rest of the application
+# Copy the entire application
 COPY . .
-RUN chmod +x startup.sh
 
-# Create directory for SQLite database with proper permissions
-RUN mkdir -p /app/data && \
+# Ensure startup script has execute permissions
+RUN chmod +x startup.sh && \
+    mkdir -p /app/data && \
     chmod 777 /app/data
 
 # Set environment variables
-ENV DB_PATH=/app/data/messages.db
-ENV PORT=5000
-ENV PYTHONUNBUFFERED=1
+ENV DB_PATH=/app/data/messages.db \
+    PORT=5000 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # Expose the web server port
 EXPOSE 5000
@@ -41,5 +40,5 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# Run the startup script
-CMD ["./startup.sh"]
+# Print environment variables and start the application
+CMD ["/bin/bash", "-c", "env | sort && echo '=== Starting Application ===' && ./startup.sh"]

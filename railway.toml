@@ -1,9 +1,8 @@
 [build]
-builder = "nixpacks"
-buildCommand = "chmod +x startup.sh && ./startup.sh"
+builder = "docker"
 
 [deploy]
-startCommand = "./startup.sh"
+startCommand = "docker run -p $PORT:5000 -e PORT=$PORT -e SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN -e SLACK_APP_TOKEN=$SLACK_APP_TOKEN -e SLACK_CLIENT_ID=$SLACK_CLIENT_ID -e SLACK_CLIENT_SECRET=$SLACK_CLIENT_SECRET -e GOOGLE_API_KEY=$GOOGLE_API_KEY $RAILWAY_DOCKERFILE_IMAGE"
 healthcheckPath = "/health"
 healthcheckTimeout = 10
 
